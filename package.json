@@ -1,0 +1,50 @@
+{
+  "name": "dsh-rtk",
+  "version": "0.1.0",
+  "description": "A native DeepSeek Harness bundle that compacts noisy engineering command output, preserves failure diagnostics, and reports in-session context savings.",
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "src/",
+    "cordis.patch.yml",
+    "README.md",
+    "NOTICE.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check index.js && node --check src/plugin-runtime.js && node --check src/compact.js",
+    "pack:check": "npm pack --dry-run"
+  },
+  "engines": {
+    "dsh": ">=0.2.1-rc.2 <0.3.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": ">=0.2.1-rc.2 <0.3.0",
+    "@deepseek-ai/dsh-tools": ">=0.2.1-rc.2 <0.3.0",
+    "@deepseek-ai/schemastery": ">=0.2.1-rc.2 <0.3.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mulqizamzam/dsh-rtk.git"
+  },
+  "homepage": "https://github.com/mulqizamzam/dsh-rtk#readme",
+  "bugs": {
+    "url": "https://github.com/mulqizamzam/dsh-rtk/issues"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "rtk",
+    "developer-productivity",
+    "command-output",
+    "context-efficiency"
+  ]
+}
