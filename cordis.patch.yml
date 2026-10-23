@@ -1,0 +1,10 @@
+- insert:
+    - id: dsh-rtk
+      name: dsh-rtk
+      config:
+        enabled: true
+        compactSuccessfulTests: true
+        compactInstallOutput: true
+        maxOutputChars: 12000
+        maxOutputLines: 160
+        excludedCommands: []
