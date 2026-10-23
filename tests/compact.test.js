@@ -97,3 +97,11 @@ test('keeps short ordinary output unchanged', () => {
   assert.equal(result.changed, false)
   assert.equal(result.text, text)
 })
+
+test('respects the output line budget even when character budget is not reached', () => {
+  const text = Array.from({ length: 100 }, (_, i) => 'step ' + i + ': ok').join('\n')
+  const result = compactCommandOutput('some-tool build', text, { maxOutputChars: 10000, maxOutputLines: 20 }, 0)
+  assert.equal(result.changed, true)
+  assert.ok(result.text.split('\n').length <= 20)
+  assert.match(result.text, /\[dsh-rtk\] omitted/)
+})
