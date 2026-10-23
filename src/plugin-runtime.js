@@ -26,7 +26,10 @@ function statsSnapshot(stats) {
 }
 
 function outputSchema(properties) {
-  return { type: 'object', additionalProperties: false, required: Object.keys(properties), properties }
+  const requiredProperties = Object.fromEntries(
+    Object.entries(properties).map(([key, schema]) => [key, { ...schema, required: true }]),
+  )
+  return { type: 'object', additionalProperties: false, properties: requiredProperties }
 }
 
 function statsTool(stats, defineTool) {
