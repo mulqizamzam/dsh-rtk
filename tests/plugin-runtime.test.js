@@ -31,6 +31,19 @@ function bashExecution(command, exitCode = 0, extra = {}) {
   }
 }
 
+test('uses the DSH property-level required flag in output schemas', () => {
+  const ctx = createContext()
+  installRtkPlugin(ctx, {}, fakeDefineTool)
+  for (const tool of ctx.toolsRegistered) {
+    assert.equal(tool.output.schema.type, 'object')
+    assert.equal(tool.output.schema.additionalProperties, false)
+    assert.equal('required' in tool.output.schema, false)
+    for (const property of Object.values(tool.output.schema.properties)) {
+      assert.equal(property.required, true)
+    }
+  }
+})
+
 test('registers the native hook, manual compaction, and stats tools', () => {
   const ctx = createContext()
   const runtime = installRtkPlugin(ctx, {}, fakeDefineTool)
