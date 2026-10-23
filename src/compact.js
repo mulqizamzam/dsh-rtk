@@ -63,10 +63,20 @@ function capOutput(text, options) {
   const lines = text.split('\n')
   if (text.length <= options.maxOutputChars && lines.length <= options.maxOutputLines) return text
   const marker = '[dsh-rtk] omitted output to respect the configured successful-output budget. Prefix the command with DSH_RTK_BYPASS=1 to preserve full output.'
-  const budget = Math.max(0, options.maxOutputChars - marker.length - 2)
-  const head = Math.floor(budget * 0.68)
-  const tail = budget - head
-  return text.slice(0, head) + '\n' + marker + '\n' + (tail ? text.slice(-tail) : '')
+  let capped = text
+  if (lines.length > options.maxOutputLines) {
+    const keep = Math.max(2, options.maxOutputLines - 1)
+    const headCount = Math.max(1, Math.floor(keep * 0.68))
+    const tailCount = Math.max(1, keep - headCount)
+    capped = [...lines.slice(0, headCount), marker, ...lines.slice(-tailCount)].join('\n')
+  }
+  if (capped.length > options.maxOutputChars) {
+    const budget = Math.max(0, options.maxOutputChars - marker.length - 2)
+    const head = Math.floor(budget * 0.68)
+    const tail = budget - head
+    capped = text.slice(0, head) + '\n' + marker + '\n' + (tail ? text.slice(-tail) : '')
+  }
+  return capped
 }
 
 export function compactCommandOutput(command, originalText, rawOptions = {}, exitCode) {
