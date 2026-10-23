@@ -36,12 +36,21 @@ test('preserves failing command output byte-for-byte', () => {
 })
 
 test('does not alter detail-oriented source-inspection output', () => {
-  for (const command of ['git diff -- src/index.ts', 'rg TODO src/', 'cat src/index.ts', 'sed -n 1,30p src/index.ts']) {
+  for (const command of ['rg TODO src/', 'cat src/index.ts', 'sed -n 1,30p src/index.ts']) {
     const result = compactCommandOutput(command, 'line\nline\nline\n'.repeat(50), {}, 0)
     assert.equal(result.changed, false, command)
     assert.equal(result.reason, 'detail-output-preserved', command)
   }
 })
+
+test('excludes git diff by default, including when profile exclusions are empty', () => {
+  const options = normalizeOptions({ excludedCommands: [] })
+  assert.ok(options.excludedCommands.includes('git diff'))
+  const result = compactCommandOutput('git diff --stat', 'line\nline\nline\n'.repeat(50), { excludedCommands: [] }, 0)
+  assert.equal(result.changed, false)
+  assert.equal(result.reason, 'excluded-command')
+})
+
 
 test('supports explicit per-command bypass', () => {
   const text = 'same\nsame\nsame\n'
@@ -51,6 +60,24 @@ test('supports explicit per-command bypass', () => {
   const result = compactCommandOutput('DSH_RTK_BYPASS=1 cargo test', text, {}, 0)
   assert.equal(result.reason, 'explicit-bypass')
   assert.equal(result.text, text)
+})
+
+test('supports environment-level bypass for CI jobs', () => {
+  assert.equal(isBypassed('cargo test', { DSH_RTK_BYPASS: '1' }), true)
+  assert.equal(isBypassed('cargo test', { RTK_DSH_BYPASS: '1' }), true)
+  assert.equal(isBypassed('cargo test', {}), false)
+
+  const previous = process.env.DSH_RTK_BYPASS
+  process.env.DSH_RTK_BYPASS = '1'
+  try {
+    const result = compactCommandOutput('cargo test', testOutput, {}, 0)
+    assert.equal(result.changed, false)
+    assert.equal(result.reason, 'explicit-bypass')
+    assert.equal(result.text, testOutput)
+  } finally {
+    if (previous === undefined) delete process.env.DSH_RTK_BYPASS
+    else process.env.DSH_RTK_BYPASS = previous
+  }
 })
 
 test('allows explicit command-prefix exclusions', () => {

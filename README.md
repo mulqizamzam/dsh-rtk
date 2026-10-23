@@ -26,7 +26,19 @@ Di terminal lain, jalankan:
 dsh plugin --profile web add "github:mulqizamzam/dsh-rtk#main"
 ```
 
-Perintah ini meng-install bundle GitHub ke profile `web`. Untuk profile lain, ganti `web` dengan nama profile tersebut.
+Perintah ini meng-install bundle GitHub ke profile `web`.
+
+### Pasang lintas profile (rekomendasi #1)
+
+Bundle DSH dipasang **per profile**, bukan otomatis berlaku untuk semua profile. Untuk mengaktifkan kompresi konsisten di profile `web`, `desktop`, `cli`, dan profile lain yang Anda gunakan, jalankan dari checkout repo:
+
+```bash
+git clone https://github.com/mulqizamzam/dsh-rtk.git
+cd dsh-rtk
+bash scripts/install-profiles.sh web desktop cli
+```
+
+Ganti daftar tersebut dengan **nama profile yang memang Anda gunakan**. Alternatifnya, jalankan `dsh plugin --profile <nama-profile> add "github:mulqizamzam/dsh-rtk#main"` untuk setiap profile. Perintah `dsh plugin` dapat menginisialisasi profile yang belum ada, jadi periksa nama profile sebelum menjalankan helper. Setelah instalasi, restart setiap proses DSH yang menggunakan profile tersebut.
 
 ### 3. Mulai ulang DSH Web
 
@@ -58,13 +70,26 @@ Contoh instruksi ke DSH: *â€œTampilkan statistik DSH-RTK untuk sesi/proses ini.â
 
 ## Cara menggunakan bypass
 
-Untuk satu Bash command, tambahkan environment prefix berikut di depan command saat meminta DSH menjalankannya:
+Untuk satu Bash command, tambahkan environment prefix di depan command:
 
 ```bash
 DSH_RTK_BYPASS=1 cargo test --workspace
 ```
 
-`RTK_DSH_BYPASS=1` juga diterima. Bypass melewatkan compaction otomatis untuk command itu. Prefix ini tidak mengubah permission/sandbox DSH dan tidak memberi command akses tambahan.
+Untuk CI job atau sesi DSH yang harus mempertahankan **seluruh output diagnostik**, atur environment variable pada proses/job yang menjalankan DSH:
+
+```yaml
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    env:
+      DSH_RTK_BYPASS: "1"
+    steps:
+      # checkout/setup steps ...
+      - run: dsh --profile headless "run the required checks with full diagnostics"
+```
+
+`RTK_DSH_BYPASS=1` juga diterima. Environment bypass berlaku untuk semua command yang diproses oleh proses DSH tersebut; command-prefix bypass hanya berlaku untuk command itu. Bypass tidak mengubah permission/sandbox DSH dan tidak memberi command akses tambahan. Jangan atur bypass pada job unit-test yang memang sedang menguji kompresi, kecuali bypass itu hanya dipasang pada step terpisah.
 
 ## Pengaturan
 
@@ -77,7 +102,7 @@ Default config ada di `cordis.patch.yml` dan bisa diubah pada row `dsh-rtk` dala
 | `compactInstallOutput` | `true` | Pangkas baris progress package manager yang dikenali, tetap mempertahankan warning/lifecycle message. |
 | `maxOutputChars` | `12000` | Batas karakter untuk output sukses yang bukan command inspeksi detail. |
 | `maxOutputLines` | `160` | Batas baris untuk output sukses yang bukan command inspeksi detail. |
-| `excludedCommands` | `[]` | Prefix command yang harus dilewatkan tanpa compaction, misalnya `git diff` atau nama tool khusus. |
+| `excludedCommands` | `["git diff"]` | Prefix command tambahan yang dikecualikan. `git diff` selalu dikecualikan sebagai default aman, termasuk saat daftar kustom kosong. |
 
 Contoh mengecualikan command tertentu:
 
@@ -88,6 +113,7 @@ Contoh mengecualikan command tertentu:
       config:
         enabled: true
         excludedCommands:
+          - "git diff"
           - "my-command"
           - "git status --porcelain=v2"
 ```

@@ -6,20 +6,26 @@ const FAIL = /^(?:\s*(?:FAIL(?:ED)?\b|ERROR:|FATAL:|fatal:|error:|Traceback \(mo
 const EXIT = /^\s*\[exit code:\s*-?\d+\]\s*$/i
 const WARNING = /^\s*(?:warning:|warn(?:ing)?\b|⚠|note:|notice:)/i
 const bytes = (text) => Buffer.byteLength(text, 'utf8')
+const DEFAULT_EXCLUDED_COMMANDS = ['git diff']
 
 export function normalizeOptions(options = {}) {
   const clamp = (v, fallback, min, max) => Number.isFinite(Number(v)) ? Math.min(max, Math.max(min, Math.trunc(Number(v)))) : fallback
+  const requestedExclusions = Array.isArray(options.excludedCommands)
+    ? options.excludedCommands.filter((x) => typeof x === 'string' && x.trim()).map((x) => x.trim().toLowerCase())
+    : []
   return {
     compactSuccessfulTests: options.compactSuccessfulTests !== false,
     compactInstallOutput: options.compactInstallOutput !== false,
     maxOutputChars: clamp(options.maxOutputChars, 12000, 512, 100000),
     maxOutputLines: clamp(options.maxOutputLines, 160, 20, 2000),
-    excludedCommands: Array.isArray(options.excludedCommands) ? options.excludedCommands.filter((x) => typeof x === 'string' && x.trim()).map((x) => x.trim().toLowerCase()) : [],
+    excludedCommands: [...new Set([...DEFAULT_EXCLUDED_COMMANDS, ...requestedExclusions])],
   }
 }
 
-export function isBypassed(command) {
+export function isBypassed(command, env = process.env) {
   return /(?:^|\s)(?:DSH_RTK_BYPASS|RTK_DSH_BYPASS)=1(?:\s|$)/.test(command)
+    || env?.DSH_RTK_BYPASS === '1'
+    || env?.RTK_DSH_BYPASS === '1'
 }
 
 export function isExcluded(command, options = {}) {

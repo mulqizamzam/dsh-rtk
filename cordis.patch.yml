@@ -7,4 +7,5 @@
         compactInstallOutput: true
         maxOutputChars: 12000
         maxOutputLines: 160
-        excludedCommands: []
+        excludedCommands:
+          - "git diff"

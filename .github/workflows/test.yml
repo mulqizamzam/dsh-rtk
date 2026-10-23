@@ -12,6 +12,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Verify environment bypass for CI diagnostics
+        env:
+          DSH_RTK_BYPASS: "1"
+        run: |
+          node --input-type=module -e "import { isBypassed } from './src/compact.js'; if (!isBypassed('cargo test')) throw new Error('DSH_RTK_BYPASS=1 was not honored')"
+      - name: Validate multi-profile installer syntax
+        run: bash -n scripts/install-profiles.sh
       - run: npm test
       - run: npm run check
       - run: npm run pack:check
