@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Add a helper to install DSH-RTK into multiple explicitly named profiles.
+- Exclude `git diff` by default, even when a custom exclusion list is empty.
+- Support process-environment bypass flags for CI jobs that need full diagnostics.
+- Verify the environment bypass and multi-profile helper syntax in GitHub Actions.
+
 ## 0.1.0 — initial DSH port
 
 - Add a DeepSeek Harness bundle targeting DSH `0.2.1-rc.2`.

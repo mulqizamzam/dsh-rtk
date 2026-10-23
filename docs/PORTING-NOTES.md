@@ -15,7 +15,8 @@
 | Rewrite commands before execution | Not implemented | DSH's native pre-execute event is a permission decision, not an argument-rewrite API. Changing already logged arguments would undermine audit consistency. |
 | Gain/savings dashboard | Partial | dsh_rtk_stats reports process-local counts and bytes; tokens are estimated as bytes divided by four, not tokenizer-exact. |
 | Explicit/manual output filtering | Re-implemented | dsh_rtk_compact processes supplied text only; it neither executes commands nor reads files. |
-| Per-command bypass and exclusions | Preserved/adapted | DSH_RTK_BYPASS=1 / RTK_DSH_BYPASS=1 and excludedCommands. |
+| Per-command bypass and exclusions | Preserved/adapted | DSH_RTK_BYPASS=1 / RTK_DSH_BYPASS=1 command prefixes and process-environment flags; git diff is excluded by default, alongside user-configurable excludedCommands. |
+| Cross-profile rollout | Added | `scripts/install-profiles.sh` installs the bundle into each explicitly named profile; DSH bundle dependencies are profile-scoped. |
 | User-defined trusted regex filters / trust flow | Not implemented | Arbitrary deletion rules can hide diagnostics; this port allows literal command exclusions only. |
 | Persistent gain, discover, and session analytics | Not implemented | Avoids creating a separate persistent command history. Metrics reset with the process. |
 | RTK Engine and RTK Proxy | Excluded | Separately licensed upstream components are not copied or packaged; this plugin does not intercept provider API traffic. |
@@ -23,7 +24,7 @@
 
 ## Architecture and safety
 
-The package is an independent native DSH bundle. Its tools/post-execute hook runs after a Bash result and replaces only the model-facing text for eligible successful foreground commands. It does not mutate command arguments, run another shell command, touch files, make network calls, or alter DSH sandbox/permission decisions. Detail-oriented source/diff/search commands are excluded. Truncation is explicit and supports a per-command bypass.
+The package is an independent native DSH bundle. Its tools/post-execute hook runs after a Bash result and replaces only the model-facing text for eligible successful foreground commands. It does not mutate command arguments, run another shell command, touch files, make network calls, or alter DSH sandbox/permission decisions. Detail-oriented source/search commands and `git diff` are excluded. Truncation is explicit and supports per-command or process-environment bypass, useful for CI jobs that require full logs.
 
 ## Licensing and evidence limits
 
